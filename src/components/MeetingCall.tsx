@@ -31,7 +31,7 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenSharingPeerId, setScreenSharingPeerId] = useState<string | null>(null);
   const screenVideoRef = useRef<HTMLVideoElement>(null);
-  const [isScreenSharePinned, setIsScreenSharePinned] = useState(true);
+  const [isScreenSharePinned, setIsScreenSharePinned] = useState(false);
   const [schudle, setSchudle] = useState<any>();
 
   const [milestoneUrl, setMilestoneUrl] = useState("");
@@ -95,7 +95,7 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
     const fetchvalidationmiletone = async () => {
       const token = localStorage.getItem('token');
 
-      console.log("schudle====>", schudle,);
+      console.log("schudle====>", schudle);
 
       if (!token) {
         toast.error('Token not found!');
@@ -349,10 +349,11 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
         if (data.type === 'screenShare') {
           if (data.action === 'start') {
             setScreenSharingPeerId(data.peerId);
+            console.log("ScreenShareOpennnnnnnnnn")
             setIsScreenSharePinned(true);
           } else if (data.action === 'stop') {
             setScreenSharingPeerId(null);
-            setIsScreenSharePinned(true);
+            setIsScreenSharePinned(false);
           }
         }
       });
@@ -396,16 +397,16 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
               ref={screenVideoRef}
               autoPlay
               playsInline
-              className="w-full h-full object-contain"
+              className={`w-full  ${isScreenSharePinned ? 'h-[82vh]':'h-[240px]'} object-contain`}
             />
-            <div className="absolute top-2 right-2 z-10">
+            {/* <div className="absolute top-2 right-2 z-10">
               <button
                 onClick={() => setIsScreenSharePinned(!isScreenSharePinned)}
                 className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700"
               >
                 {isScreenSharePinned ? <PinOff size={20} /> : <Pin size={20} />}
               </button>
-            </div>
+            </div> */}
             <div className="absolute bottom-2 left-2 text-white bg-black bg-opacity-50 px-2 py-1 rounded">
               Screen Share {screenSharingPeerId === peer?.id ? '(You)' : ''}
             </div>
@@ -413,7 +414,7 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
         )}
 
         {/* Local video */}
-        <div className="relative bg-black rounded-lg overflow-hidden">
+        <div className="relative bg-black rounded-lg overflow-hidden ">
           <video
             ref={localVideoRef}
             autoPlay
@@ -437,6 +438,14 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
                 if (video) video.srcObject = stream;
               }}
             />
+            <div className="absolute top-2 right-2 z-10">
+              <button
+                onClick={() => setIsScreenSharePinned(!isScreenSharePinned)}
+                className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700"
+              >
+                {isScreenSharePinned ? <PinOff size={20} /> : <Pin size={20} />}
+              </button>
+            </div>
             <div className="absolute bottom-2 left-2 text-white bg-black bg-opacity-50 px-2 py-1 rounded">
               Participant
             </div>
@@ -447,9 +456,43 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-4 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-900 p-4 relative">
+      <div className="max-w-7xl mx-auto min-h-screen ">
+        { (isScreenSharing || screenSharingPeerId) && isScreenSharePinned?(
+          <>
+            <div className="flex items-center text-gray-300 absolute top-5 z-10">
+            <Users className="mr-2" size={20} />
+            <span>{participants.size} / {MAX_PARTICIPANTS} participants</span>
+          </div>
+          <div className='flex flex-col gap-3 absolute top-20 right-8 z-10'>
+          <div className="p-4 bg-gray-100 rounded-lg shadow-md">
+          
+          <p className="text-sm text-gray-600">Milestone URL:</p>
+          <a
+            href={milestoneUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 font-medium underline hover:text-blue-700"
+          >
+            Click here to open
+          </a>
+        </div>
+        <div className="p-4 bg-gray-100 rounded-lg shadow-md">
+          
+          <p className="text-sm text-gray-600">Milestone URL:</p>
+          <a
+            href={milestoneUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 font-medium underline hover:text-blue-700"
+          >
+            Click here to open
+          </a>
+        </div>
+            </div>
+        </>
+        ):(
+        <div className="mb-4 flex items-center justify-between ">
           <div className="flex items-center text-gray-300">
             <Users className="mr-2" size={20} />
             <span>{participants.size} / {MAX_PARTICIPANTS} participants</span>
@@ -457,7 +500,7 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
 
           <div className='flex flex-col items-center gap-3'>
             <div className="p-4 bg-gray-100 rounded-lg shadow-md">
-              {/* <p className="text-lg font-semibold text-gray-800">Feedback</p> */}
+          
               <p className="text-sm text-gray-600">Milestone URL:</p>
               <a
                 href={milestoneUrl}
@@ -470,7 +513,7 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
             </div>
 
             <div className="p-4 bg-gray-100 rounded-lg shadow-md">
-              {/* <p className="text-lg font-semibold text-gray-800">Feedback</p> */}
+          
               <p className="text-sm text-gray-600">Feedback</p>
               <a
                 href={feedbackUrl}
@@ -483,19 +526,19 @@ const MeetingCall = ({ roomId, password, isHost, peer }: MeetingCallProps) => {
             </div>
           </div>
 
-          {(isScreenSharing || screenSharingPeerId) && (
+          {/* {(isScreenSharing || screenSharingPeerId) && (
             <div className="text-gray-300">
               <span className="text-sm">
                 {screenSharingPeerId === peer?.id ? "You are" : "Participant is"} sharing screen
               </span>
             </div>
-          )}
+          )} */}
         </div>
-
+      )}
         {renderParticipantVideos()}
 
         {/* Controls */}
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-800 p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-800 p-4 z-10">
           <div className="max-w-7xl mx-auto flex justify-center space-x-4">
             <button
               onClick={toggleAudio}
